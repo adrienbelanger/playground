@@ -882,7 +882,24 @@ function updateUI(firstStep = false) {
   d3.select("#loss-test").text(humanReadable(lossTest));
   d3.select("#iter-number").text(addCommas(zeroPad(iter)));
   lineChart.addDataPoint([lossTrain, lossTest]);
+  const accTrain = computeAccuracy(trainData);
+  const accTest = computeAccuracy(testData);
+  d3.select("#acc-train").text(fmtPct(accTrain));
+  d3.select("#acc-test").text(fmtPct(accTest));
 }
+
+function computeAccuracy(data: Example2D[]): number {
+  let c = 0;
+  for (let i = 0; i < data.length; i++) {
+    const p = data[i];
+    const y = nn.forwardProp(network, constructInput(p.x, p.y));
+    const pred = y >= 0 ? 1 : -1;
+    if (pred === (p.label >= 0 ? 1 : -1)) c++;
+  }
+  return data.length ? c / data.length : 0;
+}
+
+const fmtPct = (v: number) => (100 * v).toFixed(1) + "%";
 
 function constructInputIds(): string[] {
   let result: string[] = [];
@@ -1117,3 +1134,79 @@ makeGUI();
 generateData(true);
 reset(true);
 hideControls();
+
+type LevelSpec = {
+  problem: Problem;
+  datasetKey: keyof typeof datasets;
+  inputs: {x: boolean; y: boolean; xSquared: boolean; ySquared: boolean; xTimesY: boolean;};
+  networkShape: number[];
+  show: string[];
+  allowedDatasets?: string[];
+};
+
+let guidedEnabled = true;
+let levelIndex = 0;
+
+const LEVELS: LevelSpec[] = [
+  {problem: Problem.CLASSIFICATION, datasetKey: "gauss", inputs:{x:true,y:true,xSquared:false,ySquared:false,xTimesY:false}, networkShape:[2], show:["resetButton","stepButton"], allowedDatasets:["gauss"]},
+  {problem: Problem.CLASSIFICATION, datasetKey: "gauss", inputs:{x:true,y:true,xSquared:false,ySquared:false,xTimesY:false}, networkShape:[2], show:["resetButton","playButton"]},
+  {problem: Problem.CLASSIFICATION, datasetKey: "circle", inputs:{x:true,y:true,xSquared:true,ySquared:true,xTimesY:false}, networkShape:[2], show:["resetButton","playButton"]},
+  {problem: Problem.CLASSIFICATION, datasetKey: "xor", inputs:{x:true,y:true,xSquared:true,ySquared:true,xTimesY:true}, networkShape:[4,2], show:["resetButton","playButton","numHiddenLayers","activation"]},
+  {problem: Problem.CLASSIFICATION, datasetKey: "xor", inputs:{x:true,y:true,xSquared:true,ySquared:true,xTimesY:true}, networkShape:[6,4], show:["resetButton","playButton","numHiddenLayers","activation","noise","showTestData"]}
+];
+
+function applyGuidedLevel(i: number) {
+  if (!guidedEnabled) return;
+  levelIndex = Math.max(0, Math.min(LEVELS.length - 1, i));
+  const L = LEVELS[levelIndex];
+  const showSet: {[key: string]: boolean} = {};
+  L.show.forEach(id => showSet[id] = true);
+  HIDABLE_CONTROLS.forEach(([_, id]) => {
+    const mustShow = !!showSet[id];
+    state.setHideProperty(id, !mustShow);
+  });
+  state.problem = L.problem;
+  state.dataset = datasets[L.datasetKey];
+  state.x = L.inputs.x;
+  state.y = L.inputs.y;
+  state.xSquared = L.inputs.xSquared;
+  state.ySquared = L.inputs.ySquared;
+  state.xTimesY = L.inputs.xTimesY;
+  state.networkShape = L.networkShape;
+  state.numHiddenLayers = L.networkShape.length - 1;
+  state.serialize();
+  if (L.allowedDatasets && L.allowedDatasets.length) {
+    d3.selectAll(".dataset").style("display", "none");
+    L.allowedDatasets.forEach(k => {
+      d3.select(`canvas[data-dataset=${k}]`).each(function() {
+        d3.select((this as any).parentNode as Element).style("display", null);
+      });
+    });
+  }
+  drawDatasetThumbnails();
+  generateData(true);
+  reset(true);
+  hideControls();
+  d3.select("#guided-level").text(`Niveau ${levelIndex + 1}/${LEVELS.length}`);
+  d3.select("body").classed("guided-locked", true);
+}
+
+function initGuidedUI() {
+  d3.select("#guided-prev").on("click", () => applyGuidedLevel(levelIndex - 1));
+  d3.select("#guided-next").on("click", () => applyGuidedLevel(levelIndex + 1));
+  d3.select("#guided-toggle").on("click", () => {
+    guidedEnabled = !guidedEnabled;
+    if (!guidedEnabled) {
+      HIDABLE_CONTROLS.forEach(([_, id]) => state.setHideProperty(id, false));
+      state.serialize();
+      hideControls();
+      d3.select("#guided-level").text("Mode libre");
+      d3.select("body").classed("guided-locked", false);
+    } else {
+      applyGuidedLevel(levelIndex);
+    }
+  });
+  applyGuidedLevel(0);
+}
+
+initGuidedUI();
