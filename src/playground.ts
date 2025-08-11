@@ -901,6 +901,8 @@ function computeAccuracy(data: Example2D[]): number {
 
 const fmtPct = (v: number) => (100 * v).toFixed(1) + "%";
 
+
+
 function constructInputIds(): string[] {
   let result: string[] = [];
   for (let inputName in INPUTS) {
@@ -1159,10 +1161,12 @@ function applyGuidedLevel(i: number) {
   if (!guidedEnabled) return;
   levelIndex = Math.max(0, Math.min(LEVELS.length - 1, i));
   const L = LEVELS[levelIndex];
+
   const showSet: {[key: string]: boolean} = {};
   L.show.forEach(id => showSet[id] = true);
   HIDABLE_CONTROLS.forEach(([_, id]) => {
     const mustShow = !!showSet[id];
+
     state.setHideProperty(id, !mustShow);
   });
   state.problem = L.problem;
