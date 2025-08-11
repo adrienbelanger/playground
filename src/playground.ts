@@ -882,6 +882,10 @@ function updateUI(firstStep = false) {
   d3.select("#loss-test").text(humanReadable(lossTest));
   d3.select("#iter-number").text(addCommas(zeroPad(iter)));
   lineChart.addDataPoint([lossTrain, lossTest]);
+  const accTrain = computeAccuracy(trainData);
+  const accTest = computeAccuracy(testData);
+  d3.select("#acc-train").text(fmtPct(accTrain));
+  d3.select("#acc-test").text(fmtPct(accTest));
 }
 
 function computeAccuracy(data: Example2D[]): number {
@@ -897,14 +901,7 @@ function computeAccuracy(data: Example2D[]): number {
 
 const fmtPct = (v: number) => (100 * v).toFixed(1) + "%";
 
-const _updateUI = updateUI;
-updateUI = function(firstStep = false) {
-  _updateUI(firstStep);
-  const accTrain = computeAccuracy(trainData);
-  const accTest = computeAccuracy(testData);
-  d3.select("#acc-train").text(fmtPct(accTrain));
-  d3.select("#acc-test").text(fmtPct(accTest));
-}
+
 
 function constructInputIds(): string[] {
   let result: string[] = [];
@@ -1164,9 +1161,12 @@ function applyGuidedLevel(i: number) {
   if (!guidedEnabled) return;
   levelIndex = Math.max(0, Math.min(LEVELS.length - 1, i));
   const L = LEVELS[levelIndex];
-  const showSet = new Set(L.show);
+
+  const showSet: {[key: string]: boolean} = {};
+  L.show.forEach(id => showSet[id] = true);
   HIDABLE_CONTROLS.forEach(([_, id]) => {
-    const mustShow = showSet.has(id);
+    const mustShow = !!showSet[id];
+
     state.setHideProperty(id, !mustShow);
   });
   state.problem = L.problem;
