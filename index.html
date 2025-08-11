@@ -64,6 +64,12 @@ limitations under the License.
           <i class="material-icons">skip_next</i>
         </button>
       </div>
+      <div class="guided-controls ui-guided" style="display:flex;gap:8px;align-items:center">
+        <button id="guided-prev" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">chevron_left</i></button>
+        <span id="guided-level">Niveau 1/5</span>
+        <button id="guided-next" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">chevron_right</i></button>
+        <button id="guided-toggle" class="mdl-button mdl-js-button">Mode libre</button>
+      </div>
       <div class="control">
         <span class="label">Époque</span>
         <span class="value" id="iter-number"></span>
@@ -82,22 +88,22 @@ limitations under the License.
       <div class="ui-dataset">
         
         <div class="dataset-list">
-          <div class="dataset" title="Circle">
+          <div class="dataset" title="Cercle">
             <canvas class="data-thumbnail" data-dataset="circle"></canvas>
           </div>
-          <div class="dataset" title="Exclusive or">
+          <div class="dataset" title="Ou exclusif">
             <canvas class="data-thumbnail" data-dataset="xor"></canvas>
           </div>
-          <div class="dataset" title="Gaussian">
+          <div class="dataset" title="Gaussienne">
             <canvas class="data-thumbnail" data-dataset="gauss"></canvas>
           </div>
-          <div class="dataset" title="Spiral">
+          <div class="dataset" title="Spirale">
             <canvas class="data-thumbnail" data-dataset="spiral"></canvas>
           </div>
-          <div class="dataset" title="Plane">
+          <div class="dataset" title="Plan">
             <canvas class="data-thumbnail" data-regDataset="reg-plane"></canvas>
           </div>
-          <div class="dataset" title="Multi gaussian">
+          <div class="dataset" title="Gaussienne multiple">
             <canvas class="data-thumbnail" data-regDataset="reg-gauss"></canvas>
           </div>
         </div>
@@ -174,6 +180,8 @@ limitations under the License.
           <span>Perte d'entraînement: </span>
           <div class="value" id="loss-train"></div>
         </div>
+        <div class="output-stats"><span>Exactitude test: </span><div class="value" id="acc-test"></div></div>
+        <div class="output-stats train"><span>Exactitude entraînement: </span><div class="value" id="acc-train"></div></div>
         <div id="linechart"></div>
       </div>
       <div id="heatmap"></div>
