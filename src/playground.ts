@@ -88,6 +88,9 @@ let HIDABLE_CONTROLS = [
   ["# of hidden layers", "numHiddenLayers"],
 ];
 
+let guidedEnabled = true;
+let levelIndex = 0;
+
 class Player {
   private timerIndex = 0;
   private isPlaying = false;
@@ -570,6 +573,9 @@ function drawNetwork(network: nn.Node[][]): void {
   // Draw the input layer separately.
   let cx = RECT_SIZE / 2 + 50;
   let nodeIds = Object.keys(INPUTS);
+  if (guidedEnabled) {
+    nodeIds = nodeIds.filter(id => state[id]);
+  }
   let maxY = nodeIndexScale(nodeIds.length);
   nodeIds.forEach((nodeId, i) => {
     let cy = nodeIndexScale(i) + RECT_SIZE / 2;
@@ -1146,9 +1152,6 @@ type LevelSpec = {
   allowedDatasets?: string[];
 };
 
-let guidedEnabled = true;
-let levelIndex = 0;
-
 const LEVELS: LevelSpec[] = [
   {problem: Problem.CLASSIFICATION, datasetKey: "gauss", inputs:{x:true,y:true,xSquared:false,ySquared:false,xTimesY:false}, networkShape:[2], show:["resetButton","stepButton"], allowedDatasets:["gauss"]},
   {problem: Problem.CLASSIFICATION, datasetKey: "gauss", inputs:{x:true,y:true,xSquared:false,ySquared:false,xTimesY:false}, networkShape:[2], show:["resetButton","playButton"]},
@@ -1206,6 +1209,7 @@ function initGuidedUI() {
       hideControls();
       d3.select("#guided-level").text("Mode libre");
       d3.select("body").classed("guided-locked", false);
+      reset(true);
     } else {
       applyGuidedLevel(levelIndex);
     }
